@@ -32,6 +32,11 @@ void EvtDisplay(TString evtNumber, TString fileName) {
 		histos.push_back(new TH1F(Form("histo_%i", i), Form("histo_%i", i), Nbins, minX, maxX));
 	}
 	
+	std::vector<TGraph*> graphs;
+	for(int i = 0; i < 240; ++i) {
+		graphs.push_back(new TGraph(999));
+	}
+	
 	TString cut("Evt == "+evtNumber);
 	t->Draw(">>evtlist", cut);
 	TEventList *evtlist = (TEventList*)gDirectory->Get("evtlist");
@@ -55,12 +60,13 @@ void EvtDisplay(TString evtNumber, TString fileName) {
 				//histos[IChanAbs240[j]]->Fill(SampleTimes[k], Pulse[j][k]);
 				//cout << "Pulse[" << j << "][" << k << "] = " << Pulse[j][k] << endl;
 				histos[IChanAbs240[j]]->Fill(SampleTimes[k], Pulse[j][k]);
+				graphs[IChanAbs240[j]]->SetPoint(k, SampleTimes[k], Pulse[j][k]);
 			}
 		}
         }
 	
-	TCanvas* cLeft = new TCanvas("cLeft", "cLeft", 1500, 800);
-	TCanvas* cRight = new TCanvas("cRight", "cRight", 1500, 800);
+	TCanvas* cLeft = new TCanvas("cLeft", "cLeft", 900, 800);
+	TCanvas* cRight = new TCanvas("cRight", "cRight", 900, 800);
 	cLeft->SetFillColor(7);
 	cRight->SetFillColor(kYellow);
 	cLeft->Divide(5, 6);
@@ -86,6 +92,7 @@ void EvtDisplay(TString evtNumber, TString fileName) {
 // 		gPad->SetLeftMargin(0);
 // 		gPad->SetRightMargin(0);
 		TLegend* leg = new TLegend(0.5,0.6,1,1);
+		TMultiGraph* g = new TMultiGraph();
 		for (int iC = 0; iC < 4; iC++) {
 			int iChanAbs240 = 4*iQ + iC;
 			if(histos[iChanAbs240]->Integral() != 0) {
@@ -103,14 +110,23 @@ void EvtDisplay(TString evtNumber, TString fileName) {
 				histos[iChanAbs240]->SetLineWidth(1);
 				histos[iChanAbs240]->GetXaxis()->SetLabelSize(0.055);
 				histos[iChanAbs240]->GetYaxis()->SetLabelSize(0.055);
+				graphs[iChanAbs240]->SetMarkerColor(color);
+				graphs[iChanAbs240]->SetMarkerSize(0.05);
+				graphs[iChanAbs240]->SetLineColor(color);
+				graphs[iChanAbs240]->SetLineWidth(1);
+				g->Add(graphs[iChanAbs240]);
 				if(iC == 0) {
-					histos[iChanAbs240]->Draw("hist");
+// 					graphs[iChanAbs240]->Draw("ap");
+// 					histos[iChanAbs240]->Draw("hist");
 				} else {
-					histos[iChanAbs240]->Draw("histsame");
+					
+// 					graphs[iChanAbs240]->Draw("apsame");
+// 					histos[iChanAbs240]->Draw("histsame");
 				}
 				leg->AddEntry(histos[iChanAbs240], Form("iChanAbs240=%i", iChanAbs240), "l");
 			}
 		}
+		g->Draw("ap");
 		leg->SetLineWidth(0);
 		leg->SetBorderSize(0);
 		leg->Draw();
